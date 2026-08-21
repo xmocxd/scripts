@@ -68,7 +68,7 @@ def main():
     else:
         sys.stdout.write("No duplicates found.\n")
 
-    sys.stdout.write(f"Final sorted unique list: {final_sorted_unique}\n")
+
     sys.stdout.write("-" * 40 + "\n")
     sys.stdout.write("Comparison Check (Original File vs. Final Unique List):\n")
     
@@ -82,6 +82,10 @@ def main():
             sys.stdout.write(f"Numbers only in original: {sorted(list(only_in_orig))}\n")
         if only_in_final:
             sys.stdout.write(f"Numbers only in final: {sorted(list(only_in_final))}\n")
+            
+
+    sys.stdout.write(f"Final sorted unique list: {final_sorted_unique}\n")
+    
 
 if __name__ == "__main__":
     main()
