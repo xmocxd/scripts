@@ -82,9 +82,12 @@ def main():
             sys.stdout.write(f"Numbers only in original: {sorted(list(only_in_orig))}\n")
         if only_in_final:
             sys.stdout.write(f"Numbers only in final: {sorted(list(only_in_final))}\n")
-            
 
-    sys.stdout.write(f"Final sorted unique list: {final_sorted_unique}\n")
+    for num in final_sorted_unique:
+            # If they are whole numbers (integers stored as floats), cast to int for clean printing
+            if isinstance(num, float) and num.is_integer():
+                num = int(num)
+            sys.stdout.write(f"{num}\n")
     
 
 if __name__ == "__main__":
