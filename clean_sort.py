@@ -1,10 +1,14 @@
 import sys
 import re
 
-def extract_numbers(text):
-    """Extracts all numbers (integers and floats) into a set for comparison."""
-    tokens = re.findall(r'-?\d+(?:\.\d+)?', text)
-    return {float(t) if '.' in t else int(t) for t in tokens}
+def extract_number_and_text(line):
+    """Extracts number and associated non-numeric text from a line.
+    Returns a tuple of (number, original_line_text) or None if no number found."""
+    match = re.search(r'-?\d+(?:\.\d+)?', line)
+    if match:
+        number = float(match.group()) if '.' in match.group() else int(match.group())
+        return (number, line)
+    return None
 
 def main():
     # Ensure an input file argument is provided
@@ -29,65 +33,47 @@ def main():
         print("The input file is empty.")
         return
 
-    # 2. Clean text: Strip out non-numeric, non-whitespace, non-return, non-comma text
-    cleaned_text = re.sub(r'[^0-9.\-\s,]', '', raw_input)
-
-    # 3. Parse numbers from the cleaned text, sort, and find duplicates
-    tokens = re.findall(r'-?\d+(?:\.\d+)?', cleaned_text)
+    # 2. Process each line: extract number and preserve associated text
+    lines = raw_input.split('\n')
+    number_line_pairs = []
+    duplicates = {}  # Track which numbers are duplicated
     
-    if not tokens:
-        print("No valid numbers found in the input after cleaning.")
+    for line in lines:
+        if line.strip():  # Skip empty lines
+            result = extract_number_and_text(line)
+            if result:
+                number, original_text = result
+                number_line_pairs.append((number, original_text))
+                # Track duplicates
+                if number in duplicates:
+                    duplicates[number] += 1
+                else:
+                    duplicates[number] = 1
+
+    if not number_line_pairs:
+        print("No valid numbers found in the input.")
         return
 
-    numbers = [float(t) if '.' in t else int(t) for t in tokens]
-    
-    # Sort numbers from low to high
-    numbers.sort()
+    # 3. Sort by number (keeping original text attached)
+    number_line_pairs.sort(key=lambda x: x[0])
 
-    # Track duplicates
-    seen = set()
-    duplicates = set()
-    for num in numbers:
-        if num in seen:
-            duplicates.add(num)
-        else:
-            seen.add(num)
+    # Identify which numbers are duplicates
+    duplicate_numbers = {num for num, count in duplicates.items() if count > 1}
 
-    # Final sorted unique list
-    final_sorted_unique = sorted(list(seen))
-
-    # 4. Compare original input file numbers vs final sorted/deduplicated numbers
-    original_set = extract_numbers(raw_input)
-    final_set = set(final_sorted_unique)
-
-    # --- Output Results to stdout ---
+    # 4. Output Results
     sys.stdout.write("=== PIPELINE RESULTS ===\n")
     
-    if duplicates:
-        sys.stdout.write(f"Duplicates found and removed: {sorted(list(duplicates))}\n")
+    if duplicate_numbers:
+        sys.stdout.write(f"Duplicates found: {sorted(list(duplicate_numbers))}\n")
     else:
         sys.stdout.write("No duplicates found.\n")
 
-
     sys.stdout.write("-" * 40 + "\n")
-    sys.stdout.write("Comparison Check (Original File vs. Final Unique List):\n")
-    
-    if original_set == final_set:
-        sys.stdout.write("Result: MATCH! Both represent the exact same set of unique numbers.\n")
-    else:
-        sys.stdout.write("Result: NO MATCH.\n")
-        only_in_orig = original_set - final_set
-        only_in_final = final_set - original_set
-        if only_in_orig:
-            sys.stdout.write(f"Numbers only in original: {sorted(list(only_in_orig))}\n")
-        if only_in_final:
-            sys.stdout.write(f"Numbers only in final: {sorted(list(only_in_final))}\n")
+    sys.stdout.write("Sorted Output (with preserved text):\n")
+    sys.stdout.write("-" * 40 + "\n")
 
-    for num in final_sorted_unique:
-            # If they are whole numbers (integers stored as floats), cast to int for clean printing
-            if isinstance(num, float) and num.is_integer():
-                num = int(num)
-            sys.stdout.write(f"{num}\n")
+    for number, original_text in number_line_pairs:
+        sys.stdout.write(f"{original_text}\n")
     
 
 if __name__ == "__main__":
